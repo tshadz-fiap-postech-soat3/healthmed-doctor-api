@@ -2,10 +2,11 @@ name: Pipeline Workflow
 
 on:
   push:
-    branches: [ "dev-001-fiap" ]
+    branches: 
+        - dev-001-fiap
   pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches: 
+        - main
 
 jobs:
   call-ci-pipeline-workflow:

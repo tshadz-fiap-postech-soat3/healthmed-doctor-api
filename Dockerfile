@@ -11,6 +11,7 @@ USER node
 
 RUN npm install
 COPY --chown=node:node . .
+RUN npx prisma generate
 RUN npm run build
 
 FROM base AS test

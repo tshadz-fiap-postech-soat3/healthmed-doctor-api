@@ -11,6 +11,6 @@ on:
 
 jobs:
   call-ci-pipeline-workflow:
-    if: ${{ github.event_name == 'push' && github.ref == 'dev-001-fiap' || github.event_name == 'pull_request' && github.base_ref }}
-    uses: tshadz-fiap-postech-soat3/ci-pipeline/.github/workflows/ci-pipeline.yml@dev-fiap-001
+    if: ${{ github.event_name == 'push' && github.ref == 'dev-001-fiap' }}
+    uses: tshadz-fiap-postech-soat3/ci-pipeline/.github/workflows/ci-pipeline.yml@main
     secrets: inherit

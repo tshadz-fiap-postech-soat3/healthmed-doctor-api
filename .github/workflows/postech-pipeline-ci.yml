@@ -2,14 +2,17 @@ name: Pipeline Workflow
 
 on:
   push:
-    branches: 
-        - dev-001-fiap
+    branches:
+      - dev-001-fiap
   pull_request:
-    branches: 
-        - main
+    branches:
+      - main
 
 jobs:
   call-ci-pipeline-workflow:
-    if: github.event_name == 'push' && github.ref == 'dev-001-fiap' || github.event_name == 'pull_request' && github.base_ref == 'main'
-    uses: tshadz-fiap-postech-soat3/ci-pipeline/.github/workflows/ci-pipeline.yml@dev-fiap-001
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Test
+        uses: echo "testing"

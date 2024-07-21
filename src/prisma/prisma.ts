@@ -10,9 +10,9 @@ const config = {
   dbUser: configService.get<string>('MYSQL_USER'),
   gcpID: configService.get<string>('GCP_ID'),
   cloudRegion: configService.get<string>('CLOUD_REGION'),
-  imageNAme: configService.get<string>('IMAGE_NAME'),
+  imageName: configService.get<string>('IMAGE_NAME'),
 };
 
-export const url = `mysql://${config.dbUser}:${config.dbPassword}@localhost/${config.dbName}?socket=/cloudsql/${config.gcpID}:${config.cloudRegion}:${config.imageNAme}-database`;
+const url = `mysql://${config.dbUser}:${config.dbPassword}@localhost/${config.dbName}?socket=/cloudsql/${config.gcpID}:${config.cloudRegion}:${config.imageName}-database`;
 
 process.env.DATABASE_URL = url;

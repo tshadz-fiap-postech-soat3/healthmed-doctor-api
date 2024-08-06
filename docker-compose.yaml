@@ -8,7 +8,7 @@ services:
     build:
       context: '.'
       dockerfile: Dockerfile
-    container_name: healthmed-doctor-api
+    container_name: ${IMAGE_NAME}
     ports:
       - '8080:8080'
     restart: 'always'
@@ -26,7 +26,7 @@ services:
 
   db:
     image: mysql:latest
-    container_name: healthmed-doctor-api-db
+    container_name: ${IMAGE_NAME}-db
     restart: always
     tty: true
     healthcheck:

@@ -1,27 +1,85 @@
 name: Pipeline Workflow
 
 on:
-  push:
-    branches:
-      - dev-001-fiap
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
-  call-ci-pipeline-workflow:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev-001-fiap' || github.event_name == 'pull_request' && github.base_ref }}
-    uses: tshadz-fiap-postech-soat3/ci-pipeline/.github/workflows/ci-pipeline.yml@dev-fiap-001
-    secrets: inherit
+  run_dast_scan:
+    runs-on: ubuntu-latest
 
-  trigger-plan-database-deployment:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    uses: tshadz-fiap-postech-soat3/terraform-database/.github/workflows/terraform-plan-pipeline-ci.yml@main
-    secrets: inherit
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  trigger-apply-database-deployment:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    needs: trigger-plan-database-deployment
-    uses: tshadz-fiap-postech-soat3/terraform-database/.github/workflows/terraform-apply-pipeline-ci.yml@main
-    secrets: inherit
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build and run Docker Compose
+        run: docker-compose up --build -d
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: fastfood
+          MYSQL_USER: user
+          MYSQL_PASSWORD: user
+          MYSQL_PORT: 3306
+          MYSQL_HOST: db
+
+      - name: Check Docker container logs
+        run: docker logs myapp || true
+
+      - name: Wait for services to be ready
+        run: |
+          docker-compose run --rm -T wait-for-it db:5432 -t 60
+          docker-compose run --rm -T wait-for-it app:8080 -t 60
+
+      - name: Test Container
+        run: |
+          if [ "$(docker inspect -f '{{.State.Running}}' myapp)" == "true" ]; then
+            curl -s http://localhost:8080 || exit 1
+          else
+            echo "Container is not running"
+            exit 1
+          fi
+
+      - name: Check running containers
+        run: docker ps
+
+      - name: Inspect Network Configuration
+        run: docker network inspect bridge
+
+      - name: Run Zap Owasp Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          docker_name: 'zaproxy/zap-stable'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: 'http://localhost:8080'
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap-reports/zap_report.html
+
+      - name: Add ZAP Findings to Summary
+        if: success()
+        run: |
+          echo '## OWASP ZAP Security Scan Results' >> $GITHUB_STEP_SUMMARY
+          echo 'No Vulnerabilities detected ✅' >> $GITHUB_STEP_SUMMARY
+
+      - name: Add ZAP Findings to Summary
+        if: failure()
+        run: |
+          echo '## OWASP ZAP Security Scan Results' >> $GITHUB_STEP_SUMMARY
+          echo 'Vulnerabilities detected ❌' >> $GITHUB_STEP_SUMMARY
+          echo '<details>' >> $GITHUB_STEP_SUMMARY
+          echo '<summary>ZAP HTML Report</summary>' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`html" >> $GITHUB_STEP_SUMMARY
+          cat zap-reports/zap_report.html >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo '</details>' >> $GITHUB_STEP_SUMMARY
+
+      - name: Stop and Remove Docker Container
+        run: |
+          docker stop myapp
+          docker rm myapp

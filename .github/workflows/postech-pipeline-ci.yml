@@ -34,11 +34,6 @@ jobs:
       - name: Check Docker container logs
         run: docker logs healthmed-doctor-api || true
 
-      - name: Wait for services to be ready
-        run: |
-          docker-compose run --rm -T healthmed-doctor-api-db db:5432 -t 60
-          docker-compose run --rm -T healthmed-doctor-api app:8080 -t 60
-
       - name: Test Container
         run: |
           if [ "$(docker inspect -f '{{.State.Running}}' healthmed-doctor-api)" == "true" ]; then

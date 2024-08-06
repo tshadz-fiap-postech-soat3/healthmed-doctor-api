@@ -7,6 +7,14 @@ jobs:
   run_dast_scan:
     runs-on: ubuntu-latest
 
+    env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: fastfood
+          MYSQL_USER: user
+          MYSQL_PASSWORD: user
+          MYSQL_PORT: 3306
+          MYSQL_HOST: db
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,25 +30,18 @@ jobs:
       
       - name: Build and run Docker Compose
         run: docker-compose up --build -d
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: fastfood
-          MYSQL_USER: user
-          MYSQL_PASSWORD: user
-          MYSQL_PORT: 3306
-          MYSQL_HOST: db
 
       - name: Check Docker container logs
-        run: docker logs myapp || true
+        run: docker logs healthmed-doctor-api || true
 
       - name: Wait for services to be ready
         run: |
-          docker-compose run --rm -T wait-for-it db:5432 -t 60
-          docker-compose run --rm -T wait-for-it app:8080 -t 60
+          docker-compose run --rm -T healthmed-doctor-api-db db:5432 -t 60
+          docker-compose run --rm -T healthmed-doctor-api app:8080 -t 60
 
       - name: Test Container
         run: |
-          if [ "$(docker inspect -f '{{.State.Running}}' myapp)" == "true" ]; then
+          if [ "$(docker inspect -f '{{.State.Running}}' healthmed-doctor-api)" == "true" ]; then
             curl -s http://localhost:8080 || exit 1
           else
             echo "Container is not running"

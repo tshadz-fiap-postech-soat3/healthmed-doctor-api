@@ -8,12 +8,14 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: fastfood
-          MYSQL_USER: user
-          MYSQL_PASSWORD: user
-          MYSQL_PORT: 3306
-          MYSQL_HOST: db
+        DATABASE_URL: mysql://root:root@db:3306/healthmed-doctor
+        MYSQL_HOST: "db"
+        MYSQL_ROOT_PASSWORD: "root"
+        MYSQL_ROOT_USER: "root"
+        MYSQL_DATABASE: "healthmed-doctor"
+        MYSQL_USER: "user"
+        MYSQL_PASSWORD: "user"
+        MYSQL_PORT: 3306
 
     steps:
       - name: Checkout code

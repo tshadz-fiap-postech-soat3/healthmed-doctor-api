@@ -1,76 +1,27 @@
 name: Pipeline Workflow
 
 on:
+  push:
+    branches:
+      - dev-dast-mock
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  run_dast_scan:
-    runs-on: ubuntu-latest
+  call-ci-pipeline-workflow:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev-001-fiap' || github.event_name == 'pull_request' && github.base_ref }}
+    uses: tshadz-fiap-postech-soat3/ci-pipeline/.github/workflows/ci-pipeline.yml@dev-fiap-001
+    secrets: inherit
 
-    env:
-        DATABASE_URL: mysql://root:root@db:3306/healthmed-doctor
-        MYSQL_HOST: "db"
-        MYSQL_ROOT_PASSWORD: "root"
-        MYSQL_ROOT_USER: "root"
-        MYSQL_DATABASE: "healthmed-doctor"
-        MYSQL_USER: "user"
-        MYSQL_PASSWORD: "user"
-        MYSQL_PORT: 3306
+  trigger-plan-database-deployment:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    uses: tshadz-fiap-postech-soat3/terraform-database/.github/workflows/terraform-plan-pipeline-ci.yml@main
+    secrets: inherit
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose --version
-      
-      - name: Build and run Docker Compose
-        run: docker-compose up --build -d
-
-      - name: Check Docker container logs
-        run: docker logs healthmed-doctor-api || true
-
-      - name: Test Container
-        run: timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8080)" != "200" ]]; do sleep 5; done' || false
-
-      - name: Check running containers
-        run: docker ps
-
-      - name: Inspect Network Configuration
-        run: docker network inspect bridge
-
-      - name: Run Zap Owasp Scan
-        uses: zaproxy/action-full-scan@v0.10.0
-        with:
-          docker_name: 'zaproxy/zap-stable'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          target: 'http://localhost:8080'
-          fail_action: true
-
-      - name: Add ZAP Findings to Summary
-        if: success()
-        run: |
-          echo '## OWASP ZAP Security Scan Results' >> $GITHUB_STEP_SUMMARY
-          echo 'No Vulnerabilities detected ✅' >> $GITHUB_STEP_SUMMARY
-
-      - name: Add ZAP Findings to Summary
-        if: failure()
-        run: |
-          echo '## OWASP ZAP Security Scan Results' >> $GITHUB_STEP_SUMMARY
-          echo 'Vulnerabilities detected ❌' >> $GITHUB_STEP_SUMMARY
-          echo '<details>' >> $GITHUB_STEP_SUMMARY
-          echo '<summary>ZAP Markdown Report</summary>' >> $GITHUB_STEP_SUMMARY
-          echo '' >> $GITHUB_STEP_SUMMARY
-          cat ./report_md.md >> $GITHUB_STEP_SUMMARY
-          echo '</details>' >> $GITHUB_STEP_SUMMARY
-
-      - name: Stop and Remove Docker Container
-        run: |
-          docker stop healthmed-doctor-api
-          docker rm healthmed-doctor-api
+  trigger-apply-database-deployment:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: trigger-plan-database-deployment
+    uses: tshadz-fiap-postech-soat3/terraform-database/.github/workflows/terraform-apply-pipeline-ci.yml@main
+    secrets: inherit

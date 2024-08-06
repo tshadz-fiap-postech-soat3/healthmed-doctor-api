@@ -51,11 +51,7 @@ jobs:
           docker_name: 'zaproxy/zap-stable'
           token: ${{ secrets.GITHUB_TOKEN }}
           target: 'http://localhost:8080'
-
-      - name: List Files in zap-reports Directory
-        run: | 
-          ls -la zap-reports
-          ls -la zap_scan
+          fail_action: true
 
       - name: Add ZAP Findings to Summary
         if: success()
@@ -72,7 +68,7 @@ jobs:
           echo '<summary>ZAP HTML Report</summary>' >> $GITHUB_STEP_SUMMARY
           echo '' >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`html" >> $GITHUB_STEP_SUMMARY
-          cat zap-reports/zap_report.html >> $GITHUB_STEP_SUMMARY
+          cat report.html >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo '</details>' >> $GITHUB_STEP_SUMMARY
 

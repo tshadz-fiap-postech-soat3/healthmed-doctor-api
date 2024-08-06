@@ -30,6 +30,16 @@ async function bootstrap() {
       },
     }),
   );
+
+  // Adicionar o cabeçalho Permissions-Policy manualmente
+  app.use((req, res, next) => {
+    res.setHeader(
+      'Permissions-Policy',
+      'fullscreen=(self), geolocation=(), microphone=(), camera=()',
+    );
+    next();
+  });
+
   await app.listen(8080);
 }
 bootstrap();

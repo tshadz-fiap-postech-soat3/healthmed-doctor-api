@@ -31,8 +31,6 @@ services:
     container_name: healthmed-doctor-api-db
     restart: always
     tty: true
-    env_file:
-      - .env
     healthcheck:
       test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
       timeout: 3s

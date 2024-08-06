@@ -67,6 +67,7 @@ jobs:
           echo '<details>' >> $GITHUB_STEP_SUMMARY
           echo '<summary>ZAP HTML Report</summary>' >> $GITHUB_STEP_SUMMARY
           echo '' >> $GITHUB_STEP_SUMMARY
+          ls -la
           echo "\`\`\`html" >> $GITHUB_STEP_SUMMARY
           cat report.html >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

@@ -52,11 +52,15 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           target: 'http://localhost:8080'
 
-      - name: Upload ZAP Report
-        uses: actions/upload-artifact@v3
+      - name: Download ZAP Report Artifact
+        uses: actions/download-artifact@v3
         with:
-          name: zap-report
-          path: zap-reports/zap_report.html
+          name: zap-scan
+          path: ./zap-scan
+
+      - name: Unzip ZAP Report
+        run: |
+          unzip ./zap-scan/zap_scan.zip -d ./zap-scan
 
       - name: Add ZAP Findings to Summary
         if: success()
@@ -79,5 +83,5 @@ jobs:
 
       - name: Stop and Remove Docker Container
         run: |
-          docker stop myapp
-          docker rm myapp
+          docker stop healthmed-doctor-api
+          docker rm healthmed-doctor-api

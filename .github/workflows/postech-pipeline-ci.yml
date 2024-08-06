@@ -65,7 +65,7 @@ jobs:
           echo '## OWASP ZAP Security Scan Results' >> $GITHUB_STEP_SUMMARY
           echo 'Vulnerabilities detected ❌' >> $GITHUB_STEP_SUMMARY
           echo '<details>' >> $GITHUB_STEP_SUMMARY
-          echo '### ZAP Markdown Report' >> $GITHUB_STEP_SUMMARY
+          echo '<summary>ZAP Markdown Report</summary>' >> $GITHUB_STEP_SUMMARY
           echo '' >> $GITHUB_STEP_SUMMARY
           cat ./report_md.md >> $GITHUB_STEP_SUMMARY
           echo '</details>' >> $GITHUB_STEP_SUMMARY

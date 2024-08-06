@@ -7,4 +7,3 @@ export class Doctor {
   password: string = 'password-examples';
   address: string = 'address';
 }
-

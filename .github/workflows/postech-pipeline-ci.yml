@@ -52,15 +52,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           target: 'http://localhost:8080'
 
-      - name: Download ZAP Report Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: zap-scan
-          path: ./zap-scan
-
-      - name: Unzip ZAP Report
-        run: |
-          unzip ./zap-scan/zap_scan.zip -d ./zap-scan
+      - name: List Files in zap-reports Directory
+        run: | 
+          ls -la zap-reports
+          ls -la zap_scan
 
       - name: Add ZAP Findings to Summary
         if: success()

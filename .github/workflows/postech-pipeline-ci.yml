@@ -37,13 +37,7 @@ jobs:
         run: docker logs healthmed-doctor-api || true
 
       - name: Test Container
-        run: |
-          if [ "$(docker inspect -f '{{.State.Running}}' healthmed-doctor-api)" == "true" ]; then
-            curl -s http://localhost:8080 || exit 1
-          else
-            echo "Container is not running"
-            exit 1
-          fi
+        run: timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8080)" != "200" ]]; do sleep 5; done' || false
 
       - name: Check running containers
         run: docker ps
